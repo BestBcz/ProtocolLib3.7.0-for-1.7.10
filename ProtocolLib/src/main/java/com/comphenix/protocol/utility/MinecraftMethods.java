@@ -42,16 +42,17 @@ public class MinecraftMethods {
 		if (sendPacketMethod == null) {
 			Class<?> serverHandlerClass = MinecraftReflection.getNetServerHandlerClass();
 
+			// Method names are stable on Netty, but custom servers may overload sendPacket.
+			// Match the exact Packet signature instead of selecting an arbitrary overload.
+			if (MinecraftReflection.isUsingNetty()) {
+				sendPacketMethod = FuzzyReflection.fromClass(serverHandlerClass).
+					getMethodByParameters("sendPacket", MinecraftReflection.getPacketClass());
+				return sendPacketMethod;
+			}
+
 			try {
 				sendPacketMethod = FuzzyReflection.fromClass(serverHandlerClass).getMethodByName("sendPacket.*");
 			} catch (IllegalArgumentException e) {
-				// We can't use the method below on Netty
-				if (MinecraftReflection.isUsingNetty()) {
-					sendPacketMethod = FuzzyReflection.fromClass(serverHandlerClass).
-						getMethodByParameters("sendPacket", MinecraftReflection.getPacketClass());
-					return sendPacketMethod;
-				}
-				
 				Map<String, Method> netServer = getMethodList(
 						serverHandlerClass, MinecraftReflection.getPacketClass());
 				Map<String, Method> netHandler = getMethodList(
