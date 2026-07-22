@@ -125,11 +125,11 @@ public class WrappedWatchableObject extends AbstractWrapper {
 	/**
 	 * Initialize reflection machinery.
 	 */
-	private static void initialize() {
+	private static synchronized void initialize() {
 		if (!hasInitialized) {
-			hasInitialized = true;
 			watchableObjectClass = MinecraftReflection.getWatchableObjectClass();
 			baseModifier = new StructureModifier<Object>(watchableObjectClass, null, false);
+			hasInitialized = true;
 		}
 	}
 
